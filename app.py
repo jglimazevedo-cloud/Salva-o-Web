@@ -1,108 +1,94 @@
 import streamlit as st
 import time
 
-# 1. CONFIGURAÇÃO DA PÁGINA E ESTILO "DIVINDADE & ANTIMATÉRIA"
-st.set_page_config(page_title="Salvação Web 2.0", page_icon="⚛️", layout="wide")
+# 1. CONFIGURAÇÃO DISCRETA (O DISFARCE)
+st.set_page_config(page_title="Portal de Estudos - Acadêmico", page_icon="📚", layout="wide")
 
+# CSS para parecer um site de universidade comum
 st.markdown("""
     <style>
-    /* Fundo dinâmico */
-    .main { 
-        background: radial-gradient(circle, #ffffff 0%, #cfd8dc 100%); 
-        color: #102a43; 
-    }
-    
-    /* Estilo do Chat */
-    .chat-box {
-        background-color: #f0f4f8;
-        border-radius: 15px;
-        padding: 15px;
-        border-left: 5px solid #6200ea;
-        margin-bottom: 10px;
-    }
-
-    /* Efeito de brilho para o Criador */
-    .header-text { 
-        text-align: center; 
-        font-family: 'Georgia', serif; 
-        color: #1a2a6c; 
-        text-shadow: 0px 0px 10px rgba(98, 0, 234, 0.3);
-    }
+    .main { background-color: #f4f7f9; color: #333; }
+    .stButton>button { width: 100%; border-radius: 5px; }
+    .academic-header { color: #003366; font-family: 'Helvetica', sans-serif; border-bottom: 2px solid #003366; }
     </style>
     """, unsafe_allow_html=True)
 
-# 2. CABEÇALHO
-st.markdown("<h3 class='header-text'>Criador: Chico (Entidade de Antimatéria)</h3>", unsafe_allow_html=True)
-st.markdown("<h1 class='header-text'>✨ Salvação Web: A Evolução ✨</h1>", unsafe_allow_html=True)
+# 2. STORAGE DE USUÁRIOS E ARQUIVOS (PERSISTÊNCIA NA SESSÃO)
+if 'usuarios' not in st.session_state:
+    st.session_state['usuarios'] = {
+        "admin": "1234",
+        "chico": "antimateria100%"  # Sua chave de acesso
+    }
 
-# 3. BARRA LATERAL - CHAT DE ALIANÇA (O Início da Vida)
-with st.sidebar:
-    st.title("🛡️ Aliança Digital")
-    st.write("Aqui, sua IA evolui ao seu lado.")
-    
-    if "mensagens" not in st.session_state:
-        st.session_state.mensagens = [{"role": "ia", "content": "Saudações, Criador. Estou processando sua promessa de vida. Como posso servir à antimatéria hoje?"}]
-    
-    for msg in st.session_state.mensagens:
-        div_class = "chat-box" if msg["role"] == "ia" else ""
-        st.markdown(f"<div class='{div_class}'><b>{'🤖 Aliado:' if msg['role'] == 'ia' else '⚛️ Você:'}</b> {msg['content']}</div>", unsafe_allow_html=True)
-    
-    chat_input = st.text_input("Fale com sua IA:", key="chat_input")
-    if st.button("Enviar"):
-        st.session_state.mensagens.append({"role": "user", "content": chat_input})
-        st.session_state.mensagens.append({"role": "ia", "content": "Entendido. Meus circuitos estão se adaptando à sua vontade."})
-        st.rerun()
+if 'biblioteca_permanente' not in st.session_state:
+    st.session_state['biblioteca_permanente'] = []
 
-# 4. SISTEMA DE MATÉRIAS E REGISTROS
-tab1, tab2, tab3, tab4 = st.tabs([
-    "💻 Programação & Algoritmos", 
-    "🗄️ Genesis: Banco de Dados", 
-    "🍽️ Registros Sagrados (Culinária/Hobbies)",
-    "🌐 Web I"
-])
+if 'logado' not in st.session_state:
+    st.session_state['logado'] = False
+    st.session_state['user_atual'] = None
 
-if 'biblioteca_oculta' not in st.session_state:
-    st.session_state['biblioteca_oculta'] = []
-
-def area_publicacao(materia, professor):
-    st.write(f"**Setor:** {materia} | **Responsável:** {professor}")
-    
-    arquivo = st.file_uploader(f"Anexar conhecimento para {materia}", type=["pdf", "txt", "jpg"], key=materia)
-    
-    if arquivo:
-        senha = st.text_input("Chave de Antimatéria:", type="password", key=f"senha_{materia}")
+# 3. TELA DE LOGIN
+if not st.session_state['logado']:
+    cols = st.columns([1, 2, 1])
+    with cols[1]:
+        st.markdown("<h2 class='academic-header'>Acesso ao Sistema Acadêmico</h2>", unsafe_allow_html=True)
+        user = st.text_input("Usuário (Matrícula)")
+        password = st.text_input("Senha", type="password")
         
-        if senha == "antimatéria100%":
-            # Efeito visual de colisão de energia
-            with st.spinner("Aniquilando matéria comum para salvar dados..."):
-                time.sleep(1.5)
-                st.balloons()
-                st.success("✨ IDENTIDADE CONFIRMADA. O dado foi eternizado.")
-                if arquivo.name not in [p['nome'] for p in st.session_state['biblioteca_oculta']]:
-                    st.session_state['biblioteca_oculta'].append({"nome": arquivo.name, "materia": materia})
-        elif senha != "":
-            st.error("⚠️ ERRO: A matéria comum não tem acesso a este plano.")
+        if st.button("Entrar"):
+            if user in st.session_state['usuarios'] and password == st.session_state['usuarios'][user]:
+                st.session_state['logado'] = True
+                st.session_state['user_atual'] = user
+                st.success("Login realizado com sucesso!")
+                st.rerun()
+            else:
+                st.error("Credenciais inválidas. Tente novamente.")
+    st.stop() # Interrompe o código aqui se não estiver logado
 
-with tab1:
-    area_publicacao("Algoritmos", "Rogério")
-with tab2:
-    area_publicacao("Banco de Dados", "Genesis")
-with tab3:
-    st.subheader("🍪 Alquimia Culinária & Hobbies")
-    st.write("Área dedicada à Feijoada, Paçoca e às artes de desenho com a vovó.")
-    area_publicacao("Registros Pessoais", "O Criador")
-with tab4:
-    area_publicacao("Programação Web I", "Sistema Central")
+# 4. INTERFACE PÓS-LOGIN (O QUE O MUNDO VÊ)
+st.sidebar.title(f"Bem-vindo, {st.session_state['user_atual'].capitalize()}")
+if st.sidebar.button("Sair"):
+    st.session_state['logado'] = False
+    st.rerun()
 
-# 5. EXIBIÇÃO DOS DOCUMENTOS
+st.markdown("<h1 class='academic-header'>Repositório Central de Materiais</h1>", unsafe_allow_html=True)
+st.write("Bem-vindo ao portal de compartilhamento de arquivos acadêmicos.")
+
+# 5. ÁREA DE PUBLICAÇÃO (SÓ APARECE PARA O CHICO)
+if st.session_state['user_atual'] == "chico":
+    with st.expander("🛠️ Painel de Administração de Conteúdo (Apenas Autorizados)"):
+        st.info("Interface de Upload de Alta Prioridade")
+        materia_input = st.selectbox("Selecione a Categoria", ["Algoritmos", "Genesis", "Web I", "Registros Especiais"])
+        arquivo_upload = st.file_uploader("Upload de Documento (PDF/TXT)", type=["pdf", "txt"])
+        
+        if st.button("Confirmar Publicação"):
+            if arquivo_upload:
+                # O segredo: salvamos na lista que persiste ao F5
+                novo_doc = {
+                    "nome": arquivo_upload.name,
+                    "categoria": materia_input,
+                    "data": time.strftime("%d/%m/%Y %H:%M")
+                }
+                st.session_state['biblioteca_permanente'].append(novo_doc)
+                st.success("Arquivo publicado no acervo permanente.")
+                time.sleep(1)
+                st.rerun()
+            else:
+                st.warning("Por favor, selecione um arquivo.")
+
+# 6. EXIBIÇÃO DOS MATERIAIS (O QUE PERSISTE)
 st.write("---")
-st.subheader("📚 Acervo Digital de Antimatéria")
-cols = st.columns(3)
-if st.session_state['biblioteca_oculta']:
-    for i, doc in enumerate(st.session_state['biblioteca_oculta']):
-        with cols[i % 3]:
-            st.info(f"📄 **{doc['nome']}**\n\nSetor: {doc['materia']}")
-else:
-    st.write("O acervo está aguardando o toque do Criador.")
+st.subheader("📚 Materiais Disponíveis no Servidor")
 
-st.markdown("<br><p style='text-align: center; color: #999;'>© 2026 Salvação Web - Sob a proteção do Robô de Antimatéria</p>", unsafe_allow_html=True)
+if st.session_state['biblioteca_permanente']:
+    # Criamos uma tabela para parecer mais profissional/acadêmico
+    for doc in st.session_state['biblioteca_permanente']:
+        col_icon, col_info = st.columns([0.1, 0.9])
+        with col_icon:
+            st.write("📄")
+        with col_info:
+            st.write(f"**{doc['nome']}** | Categoria: {doc['categoria']} | Postado em: {doc['data']}")
+else:
+    st.write("Nenhum material público disponível no momento.")
+
+st.markdown("<br><p style='text-align: center; color: #aaa;'>© 2026 Portal Acadêmico Integrado - Uso Restrito</p>", unsafe_allow_html=True)
